@@ -592,43 +592,59 @@
 
 
     body.mini-mode {
-      padding: 8px;
+      padding: 6px;
       display: block;
       min-height: 100vh;
-      background: linear-gradient(180deg, #070c18, #0d1426);
+      background: #0b1020 !important;
     }
 
     body.mini-mode .app {
       width: 100%;
-      max-width: 360px;
+      max-width: 520px;
       margin: 0 auto;
-      border-radius: 24px;
+      border-radius: 18px;
+      background: #111827 !important;
+      background-image: none !important;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      opacity: 1 !important;
     }
 
-    body.mini-mode .topbar {
-      padding: 10px 12px;
-    }
-
-    body.mini-mode .title { font-size: 16px; }
-    body.mini-mode .pill { display: none; }
-    body.mini-mode .main { padding: 10px; gap: 10px; }
+    body.mini-mode .topbar,
     body.mini-mode .viewer-banner,
     body.mini-mode #syncBanner,
     body.mini-mode .room-panel,
     body.mini-mode .mini-actions,
-    body.mini-mode #miniWindowBtn { display: none !important; }
-    body.mini-mode .hero { padding: 14px; gap: 12px; border-radius: 22px; }
-    body.mini-mode .hero-head { align-items: center; }
-    body.mini-mode .meta { font-size: 10px; }
-    body.mini-mode .big-label { font-size: 18px; }
-    body.mini-mode .number { font-size: clamp(88px, 30vw, 124px); }
-    body.mini-mode .unit { font-size: 14px; padding-bottom: 8px; }
-    body.mini-mode .hint { font-size: 12px; min-height: 16px; }
-    body.mini-mode .compact-row { grid-template-columns: repeat(2, 1fr); }
-    body.mini-mode .compact-item { padding: 8px 10px; border-radius: 14px; }
-    body.mini-mode .controls { grid-template-columns: 1fr 1fr; gap: 8px; }
-    body.mini-mode .action-btn { min-height: 74px; font-size: 20px; border-radius: 18px; }
-    body.mini-mode .action-btn small { font-size: 11px; margin-top: 4px; }
+    body.mini-mode #miniWindowBtn,
+    body.mini-mode .controls,
+    body.mini-mode .compact-row,
+    body.mini-mode .progress,
+    body.mini-mode .unit { display: none !important; }
+    body.mini-mode .main { padding: 0; gap: 0; }
+    body.mini-mode .hero {
+      padding: 8px 10px;
+      gap: 0;
+      border-radius: 18px;
+      border: 0;
+      background: transparent;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      column-gap: 10px;
+      min-height: 56px;
+    }
+    body.mini-mode .hero::after { display: none; }
+    body.mini-mode .hero-head { display: contents; }
+    body.mini-mode .phase { font-size: 12px; min-width: 56px; white-space: nowrap; }
+    body.mini-mode .phase::before { width: 7px; height: 7px; }
+    body.mini-mode .meta { display: none; }
+    body.mini-mode .center { display: contents; }
+    body.mini-mode .big-label { font-size: 13px; font-weight: 900; letter-spacing: -.02em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.mini-mode .timer-row { display: block; }
+    body.mini-mode .number { font-size: 34px; line-height: 1; letter-spacing: -.06em; min-width: 48px; text-align: right; }
+    body.mini-mode .hint { display: none; }
 
     .safe .phase { color: var(--safe); }
     .warn .phase { color: var(--warn); }
@@ -995,9 +1011,6 @@
       const style = doc.createElement('style');
       style.textContent = `
         :root {
-          --bg-1: #090f1f;
-          --bg-2: #10182d;
-          --line: rgba(255,255,255,.08);
           --text: #f4f7ff;
           --muted: #9ba7c6;
           --safe: #22c55e;
@@ -1005,32 +1018,76 @@
           --danger: #ef4444;
         }
         * { box-sizing: border-box; }
-        html, body { margin: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Noto Sans TC", sans-serif; color: var(--text); }
-        body { background: linear-gradient(180deg, var(--bg-1), var(--bg-2)); padding: 10px; }
-        .pip-shell { height: 100%; border-radius: 24px; border: 1px solid rgba(255,255,255,.08); background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025)); box-shadow: 0 18px 50px rgba(0,0,0,.35); padding: 14px; display: grid; gap: 12px; }
-        .pip-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .pip-role { font-size: 12px; font-weight: 900; color: #cdd6ff; letter-spacing: .04em; }
-        .pip-room { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
-        .pip-card { border-radius: 22px; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); padding: 16px; display: grid; gap: 8px; min-height: 0; }
-        .pip-phase { font-size: 14px; font-weight: 950; }
-        .pip-label { font-size: 18px; font-weight: 950; letter-spacing: -.03em; }
-        .pip-number { font-size: clamp(72px, 38vw, 132px); font-weight: 980; letter-spacing: -.08em; line-height: .86; }
-        .pip-hint { font-size: 12px; color: var(--muted); min-height: 18px; }
-        .pip-progress { height: 10px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
-        .pip-progress > span { display:block; width:0%; height:100%; border-radius:inherit; }
-        .pip-meta { display:flex; justify-content:space-between; gap:12px; font-size:11px; color: var(--muted); font-weight:800; }
-        .pip-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .pip-btn { border: 0; border-radius: 18px; min-height: 54px; font: inherit; font-size: 18px; font-weight: 950; cursor: pointer; color: white; }
-        .pip-btn.spawn { background: linear-gradient(180deg, #7c89ff, #5967f4); }
-        .pip-btn.despawn { background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.08)); border: 1px solid rgba(255,255,255,.08); }
-        .pip-btn.reset { grid-column: 1 / -1; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.08); font-size: 16px; min-height: 46px; }
-        .pip-footer { display:flex; justify-content:space-between; gap:8px; align-items:center; font-size:11px; color: var(--muted); }
+        html, body {
+          margin: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Noto Sans TC", sans-serif;
+          color: var(--text);
+          background: #0b1020 !important;
+          color-scheme: dark;
+        }
+        body {
+          padding: 6px;
+          background: #0b1020 !important;
+        }
+        .pip-shell {
+          width: 100%;
+          height: 100%;
+          border-radius: 18px;
+          border: 1px solid rgba(255,255,255,.08);
+          background: #111827 !important;
+          background-color: #111827 !important;
+          background-image: none !important;
+          box-shadow: 0 6px 18px rgba(0,0,0,.18);
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          opacity: 1 !important;
+          padding: 8px 10px;
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 10px;
+        }
+        .pip-phase {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          min-width: 58px;
+          font-size: 12px;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+        .pip-phase::before {
+          content: "";
+          width: 7px;
+          height: 7px;
+          border-radius: 999px;
+          background: currentColor;
+          box-shadow: 0 0 12px currentColor;
+        }
+        .pip-label {
+          min-width: 0;
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: -.02em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          color: rgba(244,247,255,.92);
+        }
+        .pip-number {
+          min-width: 52px;
+          text-align: right;
+          font-size: 34px;
+          font-weight: 980;
+          letter-spacing: -.07em;
+          line-height: 1;
+        }
         .is-safe .pip-phase, .is-safe .pip-number { color: #a8ffca; }
-        .is-safe .pip-progress > span { background: linear-gradient(90deg, #6ff0a0, #22c55e); }
         .is-warn .pip-phase, .is-warn .pip-number { color: #ffd07b; }
-        .is-warn .pip-progress > span { background: linear-gradient(90deg, #ffd88f, #f59e0b); }
         .is-danger .pip-phase, .is-danger .pip-number { color: #ff9a9a; }
-        .is-danger .pip-progress > span { background: linear-gradient(90deg, #ff9b9b, #ef4444); }
       `;
       doc.head.appendChild(style);
     }
@@ -1043,54 +1100,26 @@
       attachPiPStyles(doc);
       doc.body.innerHTML = `
         <div class="pip-shell is-safe" id="pipShell">
-          <div class="pip-top">
-            <div class="pip-role" id="pipRole">${viewerMode ? 'VIEWER FLOAT' : 'HOST FLOAT'}</div>
-            <div class="pip-room" id="pipRoom">未連線</div>
-          </div>
-          <div class="pip-card">
-            <div class="pip-phase" id="pipPhase">待命</div>
-            <div class="pip-label" id="pipLabel">等待操作</div>
-            <div class="pip-number" id="pipNumber">--</div>
-            <div class="pip-hint" id="pipHint">等待同步</div>
-            <div class="pip-meta"><span id="pipStateMini">待命</span><span id="pipNextMini">65–85 秒</span></div>
-            <div class="pip-progress"><span id="pipFill"></span></div>
-          </div>
-          ${viewerMode ? '' : '<div class="pip-actions"><button class="pip-btn spawn" id="pipSpawnBtn">Spawn</button><button class="pip-btn despawn" id="pipDespawnBtn">Despawn</button><button class="pip-btn reset" id="pipResetBtn">Reset</button></div>'}
-          <div class="pip-footer"><span id="pipAudio">提示音 ${muted ? 'OFF' : 'ON'}</span><span>PiP</span></div>
+          <div class="pip-phase" id="pipPhase">待命</div>
+          <div class="pip-label" id="pipLabel">等待操作</div>
+          <div class="pip-number" id="pipNumber">--</div>
         </div>
       `;
       pipElements = {
         shell: doc.getElementById('pipShell'),
-        room: doc.getElementById('pipRoom'),
         phase: doc.getElementById('pipPhase'),
         label: doc.getElementById('pipLabel'),
-        number: doc.getElementById('pipNumber'),
-        hint: doc.getElementById('pipHint'),
-        stateMini: doc.getElementById('pipStateMini'),
-        nextMini: doc.getElementById('pipNextMini'),
-        fill: doc.getElementById('pipFill'),
-        audio: doc.getElementById('pipAudio')
+        number: doc.getElementById('pipNumber')
       };
-      if (!viewerMode) {
-        doc.getElementById('pipSpawnBtn')?.addEventListener('click', () => calibrateFromSpawn(false));
-        doc.getElementById('pipDespawnBtn')?.addEventListener('click', () => calibrateFromDespawn(false));
-        doc.getElementById('pipResetBtn')?.addEventListener('click', () => resetTimer(false));
-      }
       pipWin.addEventListener('pagehide', closePiPWindow, { once: true });
       renderPiPState();
     }
 
     function renderPiPState() {
       if (!pipWindowRef || pipWindowRef.closed || !pipElements) return;
-      pipElements.room.textContent = roomId ? `${roomId}｜${viewerMode ? '觀看端' : '操作者'}` : '未連線';
       pipElements.phase.textContent = statusText.textContent;
       pipElements.label.textContent = bigLabel.textContent;
       pipElements.number.textContent = bigNumber.textContent;
-      pipElements.hint.textContent = hintText.textContent;
-      pipElements.stateMini.textContent = stateMini.textContent;
-      pipElements.nextMini.textContent = nextSpawnMini.textContent;
-      pipElements.fill.style.width = barFill.style.width || '0%';
-      pipElements.audio.textContent = `提示音 ${muted ? 'OFF' : 'ON'}`;
       pipElements.shell.classList.remove('is-safe', 'is-warn', 'is-danger');
       if (hero.classList.contains('danger')) pipElements.shell.classList.add('is-danger');
       else if (hero.classList.contains('warn')) pipElements.shell.classList.add('is-warn');
@@ -1105,8 +1134,8 @@
             return;
           }
           pipWindowRef = await window.documentPictureInPicture.requestWindow({
-            width: viewerMode ? 360 : 380,
-            height: viewerMode ? 520 : 620
+            width: 420,
+            height: 74
           });
           ensurePiPWindowContent(pipWindowRef);
           if (miniWindowBtn) miniWindowBtn.innerHTML = '置頂小窗<small>已開啟 PiP</small>';
@@ -1462,8 +1491,8 @@
       else url.searchParams.delete('viewer');
       if (roomId) url.searchParams.set('room', roomId);
 
-      const width = viewerMode ? 360 : 380;
-      const height = viewerMode ? 680 : 720;
+      const width = 520;
+      const height = 82;
       const left = Math.max(0, (window.screen?.availWidth || window.innerWidth || 1280) - width - 24);
       const top = 24;
 
