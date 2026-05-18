@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Rift Timer — Mobile Optimized</title>
+  <style>
+    :root {
+      --bg-1: #090f1f;
+      --bg-2: #10182d;
+      --panel: rgba(255,255,255,.05);
+      --panel-2: rgba(255,255,255,.035);
+      --line: rgba(255,255,255,.08);
+      --text: #f4f7ff;
+      --muted: #9ba7c6;
+      --soft: #7382a8;
+      --safe: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --primary: #6d7cff;
+      --primary-2: #8694ff;
+      --shadow: 0 24px 80px rgba(0,0,0,.36);
+      --radius-lg: 28px;
+      --radius-md: 20px;
+      --radius-sm: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Noto Sans TC", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(109,124,255,.15), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(34,197,94,.08), transparent 24%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      padding: 14px;
+      display: grid;
+      place-items: center;
+    }
+
+    .app {
+      width: min(760px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: -.03em;
+      white-space: nowrap;
+    }
+
+    .pill {
+      flex: 0 0 auto;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(109,124,255,.08);
+      border: 1px solid rgba(134,148,255,.22);
+      color: var(--primary-2);
+      line-height: 1;
+    }
+
+    .sync-badge {
+      flex: 0 0 auto;
+      max-width: 42%;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 8px 11px;
+      border-radius: 999px;
+      color: #dbe2ff;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.08);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .main {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 10px 12px;
+      border-radius: 14px;
+    }
+
+    .banner.show,
+    .viewer-mode .viewer-banner { display: flex; }
+
+    .audio-btn {
+      position: relative;
+      z-index: 120;
+      pointer-events: auto;
+      cursor: pointer;
+      color: #eef2ff;
+      background: linear-gradient(180deg, rgba(124,137,255,.22), rgba(89,103,244,.14));
+      border: 1px solid rgba(134,148,255,.32);
+      box-shadow: 0 12px 36px rgba(53,68,173,.18), inset 0 1px 0 rgba(255,255,255,.08);
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .01em;
+    }
+
+    .audio-btn::before {
+      content: "🔊";
+      margin-right: 8px;
+      font-size: 14px;
+    }
+
+    .audio-gate {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at center, rgba(109,124,255,.16), transparent 38%),
+        rgba(4,8,18,.74);
+      backdrop-filter: blur(14px);
+      z-index: 999;
+    }
+
+    .audio-gate.show {
+      display: flex;
+    }
+
+    .audio-gate-card {
+      width: min(440px, 100%);
+      border-radius: 28px;
+      padding: 22px 18px 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(circle at top right, rgba(124,137,255,.16), transparent 34%),
+        linear-gradient(180deg, rgba(20,29,52,.96), rgba(10,16,31,.98));
+      box-shadow: 0 28px 90px rgba(0,0,0,.42);
+      text-align: center;
+    }
+
+    .audio-gate-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(124,137,255,.10);
+      border: 1px solid rgba(134,148,255,.22);
+      color: #b9c4ff;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+
+    .audio-gate-title {
+      margin: 16px 0 8px;
+      font-size: clamp(28px, 7vw, 38px);
+      font-weight: 980;
+      letter-spacing: -.04em;
+      color: #f7f9ff;
+    }
+
+    .audio-gate-text {
+      margin: 0 auto 18px;
+      max-width: 26ch;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .audio-gate-btn {
+      width: 100%;
+      min-height: 68px;
+      border-radius: 22px;
+      border: 1px solid rgba(134,148,255,.34);
+      background: linear-gradient(180deg, #8390ff, #5c68f5);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 980;
+      letter-spacing: -.02em;
+      box-shadow: 0 18px 44px rgba(75,89,228,.34);
+      animation: audioGatePulse 1.55s ease-in-out infinite;
+    }
+
+    .audio-gate-btn small {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      opacity: .9;
+      letter-spacing: 0;
+    }
+
+    .audio-gate-tip {
+      margin-top: 12px;
+      color: #8f9cc0;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.08), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -70px -70px auto;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-head,
+    .compact-row {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .phase {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 950;
+      letter-spacing: .02em;
+    }
+
+    .phase::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 14px currentColor;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .center {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 8px;
+    }
+
+    .big-label {
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -.03em;
+    }
+
+    .timer-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      line-height: 1;
+      flex-wrap: wrap;
+    }
+
+    .number {
+      font-size: clamp(84px, 19vw, 160px);
+      font-weight: 980;
+      letter-spacing: -.09em;
+      line-height: .86;
+      transform-origin: left center;
+      color: #fff;
+      text-shadow: 0 8px 40px rgba(255,255,255,.08);
+    }
+
+    .unit {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--muted);
+      padding-bottom: 12px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 20px;
+      max-width: 92%;
+    }
+
+    .compact-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+    }
+
+    .compact-v.clickable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .progress {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 8px;
+    }
+
+    .range-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      transition: width .12s linear, background-color .2s ease;
+      box-shadow: 0 0 24px rgba(255,255,255,.14);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button, input {
+      font: inherit;
+      border: 0;
+      outline: none;
+    }
+
+    button {
+      border-radius: 22px;
+      cursor: pointer;
+      padding: 14px 14px;
+      font-weight: 950;
+      transition: transform .08s ease, opacity .16s ease, box-shadow .2s ease;
+    }
+
+    button:hover { opacity: .98; }
+    button:active { transform: translateY(1px) scale(.995); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    .action-btn {
+      min-height: 92px;
+      font-size: 26px;
+      letter-spacing: -.03em;
+      box-shadow: 0 16px 36px rgba(0,0,0,.18);
+    }
+
+    .action-btn small,
+    .mini-btn small,
+    .room-btn small {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+      font-weight: 800;
+      opacity: .84;
+      letter-spacing: 0;
+    }
+
+    .spawn-action {
+      background: linear-gradient(180deg, #7c89ff, #5967f4);
+      color: white;
+    }
+
+    .despawn-action {
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      color: white;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .mini-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .mini-btn,
+    .room-btn {
+      min-height: 58px;
+      background: rgba(255,255,255,.055);
+      color: #d8e0ff;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: none;
+    }
+
+    .room-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .room-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .room-title {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .room-inline {
+      min-width: 0;
+      color: #dce3ff;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .room-actions {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+    }
+
+    input {
+      min-height: 56px;
+      border-radius: 18px;
+      padding: 0 14px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    input::placeholder { color: #7f8bab; }
+
+    .share-url,
+    .presence-inline {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 2px;
+    }
+
+    .viewer-mode .controls,
+    .viewer-mode .mini-actions,
+    .viewer-mode .room-actions .room-btn,
+    .viewer-mode #shareBtn,
+    .viewer-mode #joinRoomBtn,
+    .viewer-mode #leaveRoomBtn {
+      opacity: .56;
+      filter: grayscale(.12);
+      pointer-events: none;
+    }
+
+    .viewer-mode #miniWindowBtn {
+      opacity: 1;
+      filter: none;
+      pointer-events: auto;
+    }
+
+
+    .compact-item {
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .compact-k {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .compact-v {
+      font-size: 15px;
+      font-weight: 950;
+      color: #f4f7ff;
+    }
+
+    .audio-btn {
+      position: relative;
+      z-index: 100;
+      width: 100%;
+      cursor: pointer;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+      appearance: none;
+    }
+
+    .viewer-mode body,
+    body.viewer-mode {
+      padding-top: 0;
+    }
+
+    body.viewer-mode {
+      display: block;
+      min-height: 100dvh;
+    }
+
+    body.viewer-mode .app {
+      margin: 0 auto;
+    }
+
+    body.viewer-mode .main {
+      padding-top: 10px;
+    }
+
+    body.viewer-mode .topbar {
+      padding-bottom: 10px;
+    }
+
+
+    body.mini-mode {
+      padding: 6px;
+      display: block;
+      min-height: 100vh;
+      background: #0b1020 !important;
+    }
+
+    body.mini-mode .app {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      border-radius: 18px;
+      background: #111827 !important;
+      background-image: none !important;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      opacity: 1 !important;
+    }
+
+    body.mini-mode .topbar,
+    body.mini-mode .viewer-banner,
+    body.mini-mode #syncBanner,
+    body.mini-mode .room-panel,
+    body.mini-mode .mini-actions,
+    body.mini-mode #miniWindowBtn,
+    body.mini-mode .controls,
+    body.mini-mode .compact-row,
+    body.mini-mode .progress,
+    body.mini-mode .unit { display: none !important; }
+    body.mini-mode .main { padding: 0; gap: 0; }
+    body.mini-mode .hero {
+      padding: 8px 10px;
+      gap: 0;
+      border-radius: 18px;
+      border: 0;
+      background: transparent;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      column-gap: 10px;
+      min-height: 56px;
+    }
+    body.mini-mode .hero::after { display: none; }
+    body.mini-mode .hero-head { display: contents; }
+    body.mini-mode .phase { font-size: 12px; min-width: 56px; white-space: nowrap; }
+    body.mini-mode .phase::before { width: 7px; height: 7px; }
+    body.mini-mode .meta { display: none; }
+    body.mini-mode .center { display: contents; }
+    body.mini-mode .big-label { font-size: 13px; font-weight: 900; letter-spacing: -.02em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.mini-mode .timer-row { display: block; }
+    body.mini-mode .number { font-size: 34px; line-height: 1; letter-spacing: -.06em; min-width: 48px; text-align: right; }
+    body.mini-mode .hint { display: none; }
+
+    .safe .phase { color: var(--safe); }
+    .warn .phase { color: var(--warn); }
+    .danger .phase { color: var(--danger); }
+
+    .safe .bar-fill { background: linear-gradient(90deg, #6ff0a0, #22c55e); }
+    .warn .bar-fill { background: linear-gradient(90deg, #ffd88f, #f59e0b); }
+    .danger .bar-fill { background: linear-gradient(90deg, #ff9b9b, #ef4444); }
+
+    .safe .number { color: #a8ffca; }
+    .warn .number { color: #ffd07b; }
+    .danger .number { color: #ff9a9a; }
+
+    .warn.hero { box-shadow: inset 0 0 0 1px rgba(245,158,11,.22), 0 0 0 rgba(0,0,0,0); }
+    .danger.hero { box-shadow: inset 0 0 0 1px rgba(239,68,68,.26), 0 0 0 rgba(0,0,0,0); }
+
+    .pulse { animation: pulse 1.2s infinite; }
+    .jump { animation: jump .42s ease infinite; }
+    .shake-once { animation: shake .35s ease; }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 0 rgba(0,0,0,0); }
+      50% { box-shadow: inset 0 0 0 1px rgba(239,68,68,.22), 0 0 34px rgba(239,68,68,.12); }
+    }
+    @keyframes jump {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.065); }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-3px); }
+    }
+
+
+    @keyframes audioGatePulse {
+      0%,100% { transform: scale(1); box-shadow: 0 18px 44px rgba(75,89,228,.34); }
+      50% { transform: scale(1.018); box-shadow: 0 22px 52px rgba(95,110,255,.48); }
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 8px; display: block; }
+      .app { width: 100%; border-radius: 24px; }
+      .topbar { padding: 12px 12px 10px; }
+      .main { padding: 12px; gap: 10px; }
+      .title { font-size: 17px; }
+      .pill { padding: 6px 9px; font-size: 10px; }
+      .sync-badge { max-width: 44%; font-size: 10px; padding: 7px 9px; }
+      .hero { padding: 15px; gap: 12px; }
+      .hero-head { align-items: flex-start; }
+      .meta { font-size: 11px; }
+      .big-label { font-size: 18px; }
+      .number { font-size: clamp(78px, 26vw, 118px); }
+      .unit { font-size: 15px; padding-bottom: 9px; }
+      .hint { font-size: 12px; max-width: 100%; }
+      .compact-row { grid-template-columns: repeat(2, 1fr); }
+      .compact-item {
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .compact-k { margin: 0; font-size: 10px; }
+      .compact-v { font-size: 14px; }
+      .controls { gap: 8px; }
+      .action-btn { min-height: 84px; font-size: 22px; }
+      .mini-actions { gap: 8px; grid-template-columns: repeat(3, 1fr); }
+      .room-panel { gap: 8px; padding: 10px; }
+      .room-actions { grid-template-columns: 1fr 1fr; }
+      #roomInput { grid-column: span 2; }
+      .room-btn { min-height: 54px; }
+      .share-url { font-size: 11px; }
+      .audio-gate { padding: 14px; }
+      .audio-gate-card { padding: 18px 14px 14px; border-radius: 24px; }
+      .audio-gate-text { font-size: 13px; margin-bottom: 14px; }
+      .audio-gate-btn { min-height: 64px; font-size: 18px; border-radius: 20px; }
+    }
+
+    @media (max-width: 560px) {
+      .title-row { gap: 8px; }
+      .sync-badge { max-width: 40%; }
+      .compact-row { grid-template-columns: repeat(2, 1fr); }
+      .compact-item {
+        padding: 10px 12px;
+        border-radius: 14px;
+      }
+      .presence-inline,
+      .share-url {
+        font-size: 11px;
+      }
+      .compact-k { font-size: 10px; }
+      .compact-v { font-size: 14px; }
+      .range-row { font-size: 11px; }
+      .hero-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+      }
+      .meta { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="audio-gate" id="audioGate" aria-live="polite">
+    <div class="audio-gate-card">
+      <div class="audio-gate-kicker">觀看端提示音</div>
+      <div class="audio-gate-title">先開啟提示音</div>
+      <p class="audio-gate-text">分享端要先啟用提示音，才會收到黑水倒數與預警提醒。</p>
+      <button class="audio-gate-btn" id="audioGateBtn" type="button">啟用提示音<small>點一下後開始同步提醒</small></button>
+      <div class="audio-gate-tip">未啟用前，觀看端不會播放提示音</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="topbar">
+      <div class="title-row">
+        <div class="title">Time Rift</div>
+        <div class="pill">Hard Lotus</div>
+      </div>
+      <div class="sync-badge" id="syncStateBadge">Sync idle</div>
+    </div>
+
+    <div class="main">
+      <div class="banner viewer-banner" id="viewerBanner">觀看模式</div>
+      <div class="banner" id="syncBanner">同步狀態</div>
+      <button class="banner show audio-btn" id="audioBanner" type="button" style="display:none;">點一下啟用提示音</button>
+
+      <section class="hero safe" id="hero">
+        <div class="hero-head">
+          <div class="phase" id="statusText">待命</div>
+          <div class="meta" id="metaText">F7 / F9 / F8 / M</div>
+        </div>
+
+        <div class="center">
+          <div class="big-label" id="bigLabel">按下 Spawn 或 Despawn</div>
+          <div class="timer-row">
+            <div class="number" id="bigNumber">--</div>
+            <div class="unit">sec</div>
+          </div>
+          <div class="hint" id="hintText">狀態 / 秒數 / 提示</div>
+        </div>
+
+        <div class="compact-row compact-row-min">
+          <div class="compact-item">
+            <div class="compact-k">模式</div>
+            <div class="compact-v" id="modeMini">HOST</div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-k">提示音</div>
+            <div class="compact-v clickable" id="soundMini">ON</div>
+          </div>
+        </div>
+
+        <div class="progress">
+          <div class="range-row">
+            <span id="stateMini">待命</span>
+            <span id="nextSpawnMini">65–85 秒</span>
+          </div>
+          <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+        </div>
+      </section>
+
+      <section class="controls">
+        <button class="action-btn spawn-action" id="spawnBtn">Spawn<small>黑水出現</small></button>
+        <button class="action-btn despawn-action" id="despawnBtn">Despawn<small>黑水消失</small></button>
+      </section>
+
+      <section class="mini-actions">
+        <button class="mini-btn" id="resetBtn">Reset<small>重新校正</small></button>
+        <button class="mini-btn" id="shareBtn">分享網址</button>
+        <button class="mini-btn" id="miniWindowBtn">置頂小窗<small>支援時優先懸浮</small></button>
+      </section>
+
+      <section class="room-panel">
+        <div class="room-top">
+          <div class="room-title">房間</div>
+          <div class="room-inline" id="roomInlineText">未連線</div>
+        </div>
+        <div class="presence-inline" id="presenceInline">在線 0 ｜ Host 0 ｜ Viewer 0</div>
+        <div class="room-actions">
+          <input id="roomInput" type="text" placeholder="輸入房號，例如 lotus-team-a" />
+          <button class="room-btn" id="joinRoomBtn">連線</button>
+          <button class="room-btn" id="leaveRoomBtn">離開</button>
+        </div>
+        <div class="share-url" id="shareUrlPreview">Viewer 連結</div>
+        <input id="shareUrlInput" type="text" readonly value="" style="display:none;" />
+      </section>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      onSnapshot,
+      serverTimestamp,
+      collection,
+      deleteDoc,
+      query,
+      orderBy
+    } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCKRFShtyQ9dMtO54_XUOb0pWHplKJX_80',
+      authDomain: 'more-mss.firebaseapp.com',
+      projectId: 'more-mss',
+      storageBucket: 'more-mss.firebasestorage.app',
+      messagingSenderId: '424178571978',
+      appId: '1:424178571978:web:68d477d99908281acfb233'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const MIN_SPAWN = 65;
+    const MAX_SPAWN = 85;
+    const FINAL_WARNING_SECONDS = 10;
+    const BLACK_WATER_DURATION = 30;
+    const PRESENCE_TTL_MS = 35000;
+    const PRESENCE_HEARTBEAT_MS = 15000;
+
+    const hero = document.getElementById('hero');
+    const statusText = document.getElementById('statusText');
+    const bigNumber = document.getElementById('bigNumber');
+    const bigLabel = document.getElementById('bigLabel');
+    const hintText = document.getElementById('hintText');
+    const barFill = document.getElementById('barFill');
+    const metaText = document.getElementById('metaText');
+    const stateMini = document.getElementById('stateMini');
+    const nextSpawnMini = document.getElementById('nextSpawnMini');
+    const soundMini = document.getElementById('soundMini');
+    const modeMini = document.getElementById('modeMini');
+    const presenceInline = document.getElementById('presenceInline');
+    const spawnBtn = document.getElementById('spawnBtn');
+    const despawnBtn = document.getElementById('despawnBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const shareUrlInput = document.getElementById('shareUrlInput');
+    const shareUrlPreview = document.getElementById('shareUrlPreview');
+    const shareBtn = document.getElementById('shareBtn');
+    const miniWindowBtn = document.getElementById('miniWindowBtn');
+    const viewerBanner = document.getElementById('viewerBanner');
+    const syncBanner = document.getElementById('syncBanner');
+    const audioBanner = document.getElementById('audioBanner');
+    const audioGate = document.getElementById('audioGate');
+    const audioGateBtn = document.getElementById('audioGateBtn');
+    const syncStateBadge = document.getElementById('syncStateBadge');
+    const roomInput = document.getElementById('roomInput');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+    const roomInlineText = document.getElementById('roomInlineText');
+
+    const params = new URLSearchParams(window.location.search);
+    const viewerMode = params.get('viewer') === '1';
+    const miniMode = params.get('mini') === '1';
+    const roomFromUrl = params.get('room') || '';
+
+    const clientRole = viewerMode ? 'viewer' : 'host';
+    const clientId = `${clientRole}-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
+
+    let running = false;
+    let muted = false;
+    let hasCalibration = false;
+    let nextSpawnTarget = 0;
+    let timer = null;
+    let audioCtx = null;
+    let roomId = '';
+    let unsubscribeRoom = null;
+    let unsubscribePresence = null;
+    let lastRemoteEventId = '';
+    let lastWarningSecond = null;
+    let dangerAlertPlayed = false;
+    let audioUnlocked = false;
+    let presenceHeartbeat = null;
+    let presenceDocRef = null;
+    let pipWindowRef = null;
+    let pipElements = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    async function unlockAudio() {
+      try {
+        const ctx = getAudioCtx();
+        if (ctx.state === 'suspended') await ctx.resume();
+        audioUnlocked = true;
+        if (audioBanner) audioBanner.style.display = 'none';
+        if (audioGate) audioGate.classList.remove('show');
+        renderPiPState();
+      } catch (e) {
+        console.warn('Audio unlock failed', e);
+      }
+    }
+
+    function tone(freq, durationMs = 150, volume = 0.25) {
+      if (muted || !audioUnlocked) return;
+      try {
+        const ctx = getAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(volume, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + durationMs / 1000);
+        osc.start(now);
+        osc.stop(now + durationMs / 1000 + 0.02);
+      } catch (e) {
+        console.warn('Audio unavailable', e);
+      }
+    }
+
+    function beep(type = 'short') {
+      if (type === 'spawn') tone(700, 240, 0.2);
+      else if (type === 'warn') tone(1300, 180, 0.3);
+      else tone(950, 120, 0.18);
+    }
+
+    function setClass(state) {
+      hero.classList.remove('safe', 'warn', 'danger', 'pulse', 'shake-once');
+      hero.classList.add(state);
+      if (state === 'warn' || state === 'danger') hero.classList.add('pulse');
+    }
+
+    function updateSoundUI() {
+      soundMini.textContent = muted ? 'OFF' : 'ON';
+      renderPiPState();
+    }
+
+    function isDocumentPiPSupported() {
+      return !!(window.documentPictureInPicture && typeof window.documentPictureInPicture.requestWindow === 'function');
+    }
+
+    function getFloatingUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('mini', '1');
+      if (viewerMode) url.searchParams.set('viewer', '1');
+      if (roomId) url.searchParams.set('room', roomId);
+      return url;
+    }
+
+    function closePiPWindow() {
+      try { pipWindowRef?.close(); } catch (e) {}
+      pipWindowRef = null;
+      pipElements = null;
+      if (miniWindowBtn && !miniMode) {
+        miniWindowBtn.innerHTML = isDocumentPiPSupported()
+          ? '置頂小窗<small>支援時優先懸浮</small>'
+          : '懸浮小窗<small>精簡模式</small>';
+      }
+    }
+
+    function attachPiPStyles(doc) {
+      const style = doc.createElement('style');
+      style.textContent = `
+        :root {
+          --text: #f4f7ff;
+          --muted: #9ba7c6;
+          --safe: #22c55e;
+          --warn: #f59e0b;
+          --danger: #ef4444;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+          margin: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Noto Sans TC", sans-serif;
+          color: var(--text);
+          background: #0b1020 !important;
+          color-scheme: dark;
+        }
+        body {
+          padding: 6px;
+          background: #0b1020 !important;
+        }
+        .pip-shell {
+          width: 100%;
+          height: 100%;
+          border-radius: 18px;
+          border: 1px solid rgba(255,255,255,.08);
+          background: #111827 !important;
+          background-color: #111827 !important;
+          background-image: none !important;
+          box-shadow: 0 6px 18px rgba(0,0,0,.18);
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          opacity: 1 !important;
+          padding: 8px 10px;
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 10px;
+        }
+        .pip-phase {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          min-width: 58px;
+          font-size: 12px;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+        .pip-phase::before {
+          content: "";
+          width: 7px;
+          height: 7px;
+          border-radius: 999px;
+          background: currentColor;
+          box-shadow: 0 0 12px currentColor;
+        }
+        .pip-label {
+          min-width: 0;
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: -.02em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          color: rgba(244,247,255,.92);
+        }
+        .pip-number {
+          min-width: 52px;
+          text-align: right;
+          font-size: 34px;
+          font-weight: 980;
+          letter-spacing: -.07em;
+          line-height: 1;
+        }
+        .is-safe .pip-phase, .is-safe .pip-number { color: #a8ffca; }
+        .is-warn .pip-phase, .is-warn .pip-number { color: #ffd07b; }
+        .is-danger .pip-phase, .is-danger .pip-number { color: #ff9a9a; }
+      `;
+      doc.head.appendChild(style);
+    }
+
+    function ensurePiPWindowContent(pipWin) {
+      const doc = pipWin.document;
+      doc.open();
+      doc.write('<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Time Rift Floating</title></head><body></body></html>');
+      doc.close();
+      attachPiPStyles(doc);
+      doc.body.innerHTML = `
+        <div class="pip-shell is-safe" id="pipShell">
+          <div class="pip-phase" id="pipPhase">待命</div>
+          <div class="pip-label" id="pipLabel">等待操作</div>
+          <div class="pip-number" id="pipNumber">--</div>
+        </div>
+      `;
+      pipElements = {
+        shell: doc.getElementById('pipShell'),
+        phase: doc.getElementById('pipPhase'),
+        label: doc.getElementById('pipLabel'),
+        number: doc.getElementById('pipNumber')
+      };
+      pipWin.addEventListener('pagehide', closePiPWindow, { once: true });
+      renderPiPState();
+    }
+
+    function renderPiPState() {
+      if (!pipWindowRef || pipWindowRef.closed || !pipElements) return;
+      pipElements.phase.textContent = statusText.textContent;
+      pipElements.label.textContent = bigLabel.textContent;
+      pipElements.number.textContent = bigNumber.textContent;
+      pipElements.shell.classList.remove('is-safe', 'is-warn', 'is-danger');
+      if (hero.classList.contains('danger')) pipElements.shell.classList.add('is-danger');
+      else if (hero.classList.contains('warn')) pipElements.shell.classList.add('is-warn');
+      else pipElements.shell.classList.add('is-safe');
+    }
+
+    async function openFloatingWindow() {
+      if (isDocumentPiPSupported() && !miniMode) {
+        try {
+          if (pipWindowRef && !pipWindowRef.closed) {
+            pipWindowRef.focus();
+            return;
+          }
+          pipWindowRef = await window.documentPictureInPicture.requestWindow({
+            width: 420,
+            height: 74
+          });
+          ensurePiPWindowContent(pipWindowRef);
+          if (miniWindowBtn) miniWindowBtn.innerHTML = '置頂小窗<small>已開啟 PiP</small>';
+          return;
+        } catch (error) {
+          console.warn('Document PiP unavailable, fallback to popup.', error);
+        }
+      }
+      openMiniWindow();
+    }
+
+    function updateShareUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('viewer', '1');
+      if (roomId) url.searchParams.set('room', roomId);
+      const shareText = url.toString();
+      shareUrlInput.value = shareText;
+      shareUrlPreview.textContent = roomId ? shareText : 'Viewer 連結';
+    }
+
+    function setSyncState(text, showBanner = false) {
+      syncStateBadge.textContent = text;
+      syncBanner.textContent = text;
+      syncBanner.classList.toggle('show', showBanner);
+    }
+
+    function sanitizeRoomId(raw) {
+      return raw.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').slice(0, 40);
+    }
+
+    function setRoomUI() {
+      roomInlineText.textContent = roomId ? `${roomId}｜${viewerMode ? '觀看端' : '操作者'}` : '未連線';
+      roomInput.value = roomId;
+      updateShareUrl();
+      metaText.textContent = miniMode ? (roomId ? `${viewerMode ? 'MINI VIEWER' : 'MINI HOST'}｜${roomId}` : `${viewerMode ? 'MINI VIEWER' : 'MINI HOST'}`) : (roomId ? `房間 ${roomId}` : 'F7 / F9 / F8 / M');
+    }
+
+    function updatePresenceDisplay(host = 0, viewer = 0) {
+      const total = host + viewer;
+      presenceInline.textContent = `在線 ${total} ｜ Host ${host} ｜ Viewer ${viewer}`;
+      renderPiPState();
+    }
+
+    function clearTimer() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+      running = false;
+      lastWarningSecond = null;
+      bigNumber.classList.remove('jump');
+    }
+
+    function resetDisplay() {
+      clearTimer();
+      hasCalibration = false;
+      dangerAlertPlayed = false;
+      setClass('safe');
+      statusText.textContent = viewerMode ? '觀看模式' : '待命';
+      bigNumber.textContent = '--';
+      bigLabel.textContent = viewerMode ? '等待操作' : '按下 Spawn 或 Despawn';
+      hintText.textContent = viewerMode ? '等待同步' : '狀態 / 秒數 / 提示';
+      stateMini.textContent = viewerMode ? '等待同步' : '待命';
+      nextSpawnMini.textContent = '65–85 秒';
+      barFill.style.width = '0%';
+      renderPiPState();
+    }
+
+    async function resetTimer(localOnly = false) {
+      resetDisplay();
+      if (!localOnly) await publishEvent('reset', 0);
+    }
+
+    function startTimer(durationSec) {
+      nextSpawnTarget = performance.now() + durationSec * 1000;
+      running = true;
+      hasCalibration = true;
+      dangerAlertPlayed = false;
+      lastWarningSecond = null;
+      bigNumber.classList.remove('jump');
+      if (!timer) timer = setInterval(render, 100);
+      render();
+    }
+
+    async function calibrateFromSpawn(localOnly = false) {
+      if (viewerMode && !localOnly) return;
+      startTimer(MAX_SPAWN);
+      beep('spawn');
+      if (!localOnly) await publishEvent('spawn', MAX_SPAWN);
+    }
+
+    async function calibrateFromDespawn(localOnly = false) {
+      if (viewerMode && !localOnly) return;
+      startTimer(MAX_SPAWN - BLACK_WATER_DURATION);
+      tone(900, 140, 0.2);
+      if (!localOnly) await publishEvent('despawn', MAX_SPAWN - BLACK_WATER_DURATION);
+    }
+
+    function render() {
+      if (!running || !hasCalibration) return;
+
+      const remaining = Math.max(0, (nextSpawnTarget - performance.now()) / 1000);
+      const elapsed = MAX_SPAWN - remaining;
+      const progress = Math.min(100, (elapsed / MAX_SPAWN) * 100);
+      const earliestRemain = Math.max(0, MIN_SPAWN - elapsed);
+      const latestRemain = Math.max(0, MAX_SPAWN - elapsed);
+      barFill.style.width = `${progress}%`;
+      bigNumber.classList.remove('jump');
+
+      if (elapsed < BLACK_WATER_DURATION) {
+        setClass('danger');
+        statusText.textContent = '黑水中';
+        bigNumber.textContent = Math.ceil(BLACK_WATER_DURATION - elapsed);
+        bigLabel.textContent = '距離黑水消失';
+        hintText.textContent = '黑水持續中';
+        stateMini.textContent = '黑水中';
+        nextSpawnMini.textContent = `${Math.ceil(earliestRemain)}–${Math.ceil(latestRemain)} 秒`;
+        lastWarningSecond = null;
+      } else if (elapsed < MIN_SPAWN) {
+        const sec = Math.ceil(MIN_SPAWN - elapsed);
+        bigNumber.textContent = sec;
+        bigLabel.textContent = '距離最早黑水';
+        stateMini.textContent = '倒數中';
+        nextSpawnMini.textContent = `${sec}–${Math.ceil(latestRemain)} 秒`;
+
+        if (sec <= FINAL_WARNING_SECONDS) {
+          setClass('warn');
+          statusText.textContent = '預警期';
+          hintText.textContent = '最後 10 秒';
+          if (lastWarningSecond !== sec) {
+            beep('warn');
+            lastWarningSecond = sec;
+          }
+          bigNumber.classList.add('jump');
+        } else {
+          setClass('safe');
+          statusText.textContent = '安全倒數';
+          hintText.textContent = '等待進入 65–85 秒。';
+          lastWarningSecond = null;
+        }
+      } else {
+        setClass('danger');
+        statusText.textContent = '黑水可能出現';
+        bigNumber.textContent = Math.ceil(latestRemain);
+        bigLabel.textContent = '距離最晚黑水';
+        hintText.textContent = '已進入 65–85 秒，黑水隨時可能出現。';
+        stateMini.textContent = '黑水區';
+        nextSpawnMini.textContent = `0–${Math.ceil(latestRemain)} 秒`;
+
+        if (!dangerAlertPlayed) {
+          dangerAlertPlayed = true;
+          tone(1100, 140, 0.22);
+          setTimeout(() => tone(1100, 140, 0.22), 180);
+          hero.classList.add('shake-once');
+        }
+      }
+
+      if (remaining <= 0) {
+        clearTimer();
+        setClass('danger');
+        statusText.textContent = '超過 85 秒';
+        bigNumber.textContent = '0';
+        bigLabel.textContent = '請手動校正';
+        hintText.textContent = '請手動校正';
+        stateMini.textContent = '超時';
+        nextSpawnMini.textContent = '需要重校';
+      }
+      renderPiPState();
+    }
+
+    async function publishEvent(type, duration = 0) {
+      if (!db || !roomId || viewerMode) return;
+      const eventId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const payload = { roomId, type, duration, eventId, emittedAt: Date.now(), updatedAt: serverTimestamp() };
+      lastRemoteEventId = eventId;
+      try {
+        await setDoc(doc(db, 'timeRiftRooms', roomId), payload, { merge: true });
+      } catch (error) {
+        console.error('[publishEvent:error]', error);
+        setSyncState('寫入失敗，請檢查權限或重新連線', true);
+        throw error;
+      }
+    }
+
+    function applyRemoteEvent(data) {
+      if (!data || !data.type) return;
+      if (data.eventId && data.eventId === lastRemoteEventId) return;
+      lastRemoteEventId = data.eventId || '';
+
+      if (data.type === 'spawn') calibrateFromSpawn(true);
+      else if (data.type === 'despawn') calibrateFromDespawn(true);
+      else if (data.type === 'reset') resetTimer(true);
+      else if (data.type === 'idle') setSyncState(viewerMode ? `Viewer synced: ${data.roomId || roomId}` : `Host synced: ${data.roomId || roomId}`, true);
+    }
+
+    async function writePresence() {
+      if (!roomId || !presenceDocRef) return;
+      try {
+        await setDoc(presenceDocRef, {
+          clientId,
+          role: clientRole,
+          roomId,
+          active: true,
+          heartbeatAt: Date.now(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.warn('[presence:error]', error);
+      }
+    }
+
+    function stopPresenceHeartbeat() {
+      if (presenceHeartbeat) {
+        clearInterval(presenceHeartbeat);
+        presenceHeartbeat = null;
+      }
+    }
+
+    async function removePresence() {
+      stopPresenceHeartbeat();
+      if (!presenceDocRef) return;
+      try {
+        await deleteDoc(presenceDocRef);
+      } catch (error) {
+        console.warn('[presence:remove:error]', error);
+      }
+      presenceDocRef = null;
+    }
+
+    function listenPresence() {
+      if (!roomId) return;
+      if (unsubscribePresence) {
+        unsubscribePresence();
+        unsubscribePresence = null;
+      }
+
+      const presenceRef = collection(db, 'timeRiftRooms', roomId, 'presence');
+      const q = query(presenceRef, orderBy('heartbeatAt', 'desc'));
+
+      unsubscribePresence = onSnapshot(q, (snap) => {
+        const now = Date.now();
+        let host = 0;
+        let viewer = 0;
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (!data?.heartbeatAt) return;
+          if (now - data.heartbeatAt > PRESENCE_TTL_MS) return;
+          if (data.role === 'host') host += 1;
+          else viewer += 1;
+        });
+        updatePresenceDisplay(host, viewer);
+      }, (error) => {
+        console.warn('[presence:listen:error]', error);
+      });
+    }
+
+    async function startPresence() {
+      if (!roomId) return;
+      presenceDocRef = doc(db, 'timeRiftRooms', roomId, 'presence', clientId);
+      await writePresence();
+      stopPresenceHeartbeat();
+      presenceHeartbeat = setInterval(writePresence, PRESENCE_HEARTBEAT_MS);
+      listenPresence();
+    }
+
+    async function joinRoom() {
+      const nextRoom = sanitizeRoomId(roomInput.value || roomFromUrl || 'default-room');
+      if (!nextRoom) {
+        setSyncState('請輸入有效房號', true);
+        return;
+      }
+
+      if (unsubscribeRoom) {
+        unsubscribeRoom();
+        unsubscribeRoom = null;
+      }
+      if (unsubscribePresence) {
+        unsubscribePresence();
+        unsubscribePresence = null;
+      }
+      await removePresence();
+
+      roomId = nextRoom;
+      setRoomUI();
+      const roomRef = doc(db, 'timeRiftRooms', roomId);
+
+      try {
+        if (!viewerMode) {
+          const roomSnap = await getDoc(roomRef);
+          if (!roomSnap.exists()) {
+            await setDoc(roomRef, {
+              roomId,
+              type: 'idle',
+              duration: 0,
+              eventId: `join-${Date.now()}`,
+              emittedAt: Date.now(),
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          }
+        }
+      } catch (error) {
+        console.error('[joinRoom:error]', error);
+        setSyncState('建立房間失敗，請檢查權限', true);
+        return;
+      }
+
+      unsubscribeRoom = onSnapshot(roomRef, (snap) => {
+        if (!snap.exists()) return;
+        applyRemoteEvent(snap.data());
+      }, (error) => {
+        console.error('[onSnapshot:error]', error);
+        setSyncState('同步監聽失敗，請檢查權限或重新連線', true);
+      });
+
+      await startPresence();
+      setSyncState(viewerMode ? `Viewer synced: ${roomId}` : `Host synced: ${roomId}`, true);
+    }
+
+    async function leaveRoom() {
+      if (unsubscribeRoom) {
+        unsubscribeRoom();
+        unsubscribeRoom = null;
+      }
+      if (unsubscribePresence) {
+        unsubscribePresence();
+        unsubscribePresence = null;
+      }
+      await removePresence();
+      roomId = '';
+      updatePresenceDisplay(0, 0);
+      setRoomUI();
+      setSyncState('Sync idle', false);
+      resetDisplay();
+    }
+
+    async function copyShareUrl() {
+      try {
+        await navigator.clipboard.writeText(shareUrlInput.value);
+        shareBtn.innerHTML = '已複製<small>貼給隊友即可</small>';
+        setTimeout(() => {
+          shareBtn.innerHTML = '分享網址';
+        }, 1800);
+      } catch {
+        shareUrlInput.focus();
+        shareUrlInput.select();
+      }
+    }
+
+    function openMiniWindow() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('mini', '1');
+      if (viewerMode) url.searchParams.set('viewer', '1');
+      else url.searchParams.delete('viewer');
+      if (roomId) url.searchParams.set('room', roomId);
+
+      const width = 520;
+      const height = 82;
+      const left = Math.max(0, (window.screen?.availWidth || window.innerWidth || 1280) - width - 24);
+      const top = 24;
+
+      const features = [
+        'popup=yes',
+        `width=${width}`,
+        `height=${height}`,
+        `left=${left}`,
+        `top=${top}`,
+        'menubar=no',
+        'toolbar=no',
+        'location=no',
+        'status=no',
+        'resizable=yes',
+        'scrollbars=no'
+      ].join(',');
+
+      const windowName = viewerMode ? 'time-rift-mini-window-viewer' : 'time-rift-mini-window-host';
+      const win = window.open(url.toString(), windowName, features);
+
+      if (win) {
+        const nudgeWindow = () => {
+          try { win.resizeTo(width, height); } catch (e) {}
+          try { win.moveTo(left, top); } catch (e) {}
+          try { win.focus(); } catch (e) {}
+        };
+
+        nudgeWindow();
+        setTimeout(nudgeWindow, 180);
+        setTimeout(nudgeWindow, 640);
+      } else {
+        alert('瀏覽器阻擋了小視窗，請允許彈出視窗後再試一次。\n若小窗仍被蓋住，這是瀏覽器／作業系統限制，可先將小窗釘選或改用獨立瀏覽器視窗。');
+      }
+    }
+
+    function toggleMute() {
+      muted = !muted;
+      updateSoundUI();
+    }
+
+    spawnBtn.addEventListener('click', async () => { await calibrateFromSpawn(false); });
+    despawnBtn.addEventListener('click', async () => { await calibrateFromDespawn(false); });
+    resetBtn.addEventListener('click', async () => { await resetTimer(false); });
+    soundMini.addEventListener('click', async () => { await unlockAudio(); toggleMute(); });
+    audioBanner.addEventListener('click', async () => { await unlockAudio(); });
+    audioBanner.addEventListener('touchend', async (e) => {
+      e.preventDefault();
+      await unlockAudio();
+    }, { passive: false });
+    audioGateBtn?.addEventListener('click', async () => { await unlockAudio(); });
+    audioGateBtn?.addEventListener('touchend', async (e) => {
+      e.preventDefault();
+      await unlockAudio();
+    }, { passive: false });
+    shareBtn.addEventListener('click', copyShareUrl);
+    miniWindowBtn?.addEventListener('click', openFloatingWindow);
+    joinRoomBtn.addEventListener('click', async () => { await joinRoom(); });
+    leaveRoomBtn.addEventListener('click', async () => { await leaveRoom(); });
+
+    window.addEventListener('pointerdown', () => { unlockAudio(); }, { once: true });
+    window.addEventListener('touchstart', () => { unlockAudio(); }, { once: true, passive: true });
+
+    window.addEventListener('keydown', async (e) => {
+      await unlockAudio();
+      if (viewerMode) return;
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if (e.key === 'F7' || e.code === 'Space') {
+        e.preventDefault();
+        await calibrateFromSpawn(false);
+      } else if (e.key === 'F9' || e.key === 'Control') {
+        e.preventDefault();
+        await calibrateFromDespawn(false);
+      } else if (e.key === 'F8') {
+        e.preventDefault();
+        await resetTimer(false);
+      } else if (e.key === 'm' || e.key === 'M') {
+        toggleMute();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (presenceDocRef) {
+        deleteDoc(presenceDocRef).catch(() => {});
+      }
+      closePiPWindow();
+    });
+
+    updateSoundUI();
+    setRoomUI();
+    setSyncState('Sync idle', false);
+    updatePresenceDisplay(0, 0);
+    modeMini.textContent = viewerMode ? 'VIEWER' : 'HOST';
+
+    if (viewerMode) {
+      document.body.classList.add('viewer-mode');
+      if (audioBanner) audioBanner.style.display = 'flex';
+      if (audioGate && !audioUnlocked) audioGate.classList.add('show');
+      viewerBanner.textContent = '觀看模式';
+      statusText.textContent = '觀看模式';
+      bigLabel.textContent = '等待操作';
+      hintText.textContent = '等待同步';
+      syncBanner.classList.remove('show');
+    } else {
+      if (audioGate) audioGate.classList.remove('show');
+    }
+
+    if (miniMode) {
+      document.body.classList.add('mini-mode');
+      metaText.textContent = viewerMode ? 'MINI VIEWER' : 'MINI HOST';
+      if (audioBanner && viewerMode) audioBanner.style.display = 'flex';
+    }
+
+    if (roomFromUrl) {
+      roomInput.value = roomFromUrl;
+      joinRoom();
+    } else {
+      resetDisplay();
+    }
+  </script>
+</body>
+</html>
